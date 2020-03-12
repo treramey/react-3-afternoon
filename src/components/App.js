@@ -1,10 +1,11 @@
-import React, { Component } from 'react';
+import React, { Component } from "react";
 
-import './App.css';
+import "./App.css";
 
-import Header from './Header/Header';
-import Compose from './Compose/Compose';
-
+import Header from "./Header/Header";
+import Compose from "./Compose/Compose";
+import axios from "axios";
+import Posts from "./Post/Post";
 class App extends Component {
   constructor() {
     super();
@@ -13,28 +14,50 @@ class App extends Component {
       posts: []
     };
 
-    this.updatePost = this.updatePost.bind( this );
-    this.deletePost = this.deletePost.bind( this );
-    this.createPost = this.createPost.bind( this );
+    this.updatePost = this.updatePost.bind(this);
+    this.deletePost = this.deletePost.bind(this);
+    this.createPost = this.createPost.bind(this);
   }
-  
+
   componentDidMount() {
-
+    axios
+      .get(`https://practiceapi.devmountain.com/api/posts`)
+      .then(results => {
+        console.log(results);
+        this.setState({ posts: results.data });
+      })
+      .catch();
   }
 
-  updatePost() {
-  
+  updatePost(id, text) {
+    axios
+      .put(`https://practiceapi.devmountain.com/api/posts?id=${id}`, { text })
+      .then(results => {
+        console.log(results);
+        this.setState({ posts: results.data });
+      })
+      .catch();
   }
 
-  deletePost() {
-
+  deletePost(id) {
+    axios
+      .delete(`https://practiceapi.devmountain.com/api/posts?id=${id}`)
+      .then(results => {
+        this.setState({ posts: results.data });
+      })
+      .catch();
   }
 
-  createPost() {
-
+  createPost(text) {
+    axios
+      .post(`https://practiceapi.devmountain.com/api/posts`, { text })
+      .then(results => {
+        this.setState({ posts: results.data });
+      });
   }
 
   render() {
+    // eslint-disable-next-line
     const { posts } = this.state;
 
     return (
@@ -42,9 +65,19 @@ class App extends Component {
         <Header />
 
         <section className="App__content">
-
-          <Compose />
-          
+          <Compose createPostFn={this.createPost} />
+          {posts.map(post => {
+            return (
+              <Posts
+                key={post.id}
+                text={post.text}
+                date={post.date}
+                id={post.id}
+                updatePostFn={this.updatePost}
+                deletePostFn={this.deletePost}
+              />
+            );
+          })}
         </section>
       </div>
     );
